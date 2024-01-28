@@ -12,6 +12,9 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MusicService : Service() {
 
@@ -24,7 +27,7 @@ class MusicService : Service() {
 
     }
 
-    var onNameSongChanged: ((PendingIntent) -> Unit)? = null
+    var onNameSongChanged: ((String) -> Unit)? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -34,24 +37,28 @@ class MusicService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val action = intent?.action
+        CoroutineScope(Dispatchers.Main).launch {
+            val action = intent?.action
+            if (action == "play") {
+                if (player.isPlaying) {
 
-        if (action == "play") {
-            if (player.isPlaying) {
-
-            } else {
-                player.seekTo(length)
-                player.start()
+                } else {
+                    player.seekTo(length)
+                    player.start()
+                    onNameSongChanged?.invoke("Нуки - Измерения")
+                }
+            } else if (action == "pause") {
+                player.pause()
+                length = player.currentPosition
             }
-        } else if (action == "pause") {
-            player.pause()
-            length = player.currentPosition
         }
-        return super.onStartCommand(intent, flags, startId)
+
+        return START_STICKY
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    override fun onBind(intent: Intent?): IBinder {
+
+        return LocalBinder()
     }
 
     private fun createNotificationChanel() {
