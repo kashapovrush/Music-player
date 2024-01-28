@@ -5,6 +5,7 @@ import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.view.View
 import androidx.core.content.ContextCompat
 import com.kashapovrush.musicplayer.databinding.ActivityMainBinding
 
@@ -36,29 +37,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    val serviceConnection = object : ServiceConnection {
-//        override fun onServiceConnected(p0: ComponentName?, iBinder: IBinder?) {
-//            val localBinder = (iBinder as? MusicService.LocalBinder) ?: return
-//            val service = localBinder.getServiceBinder()
-//
-//        }
-//
-//        override fun onServiceDisconnected(p0: ComponentName?) {
-//        }
-//
-//    }
+    val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(p0: ComponentName?, iBinder: IBinder?) {
+            val localBinder = (iBinder as? MusicService.LocalBinder) ?: return
+            val service = localBinder.getServiceBinder()
+            service.onNameSongChanged = {
+                binding.nameSong.visibility = View.VISIBLE
+                binding.nameSong.text = it
+            }
+        }
+
+        override fun onServiceDisconnected(p0: ComponentName?) {
+        }
+
+    }
 
     override fun onStart() {
         super.onStart()
-//        bindService(
-//            MusicService.newIntent(this),
-//            serviceConnection,
-//            0
-//        )
+        bindService(
+            MusicService.newIntent(this),
+            serviceConnection,
+            0
+        )
     }
 
     override fun onStop() {
         super.onStop()
-//        unbindService(serviceConnection)
+        unbindService(serviceConnection)
     }
 }
